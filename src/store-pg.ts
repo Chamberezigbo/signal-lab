@@ -7,7 +7,21 @@ export function pgConfig(url: string): pg.PoolConfig {
   return { connectionString: url, ssl: internal ? undefined : { rejectUnauthorized: false }, max: 4 };
 }
 
+/** Fails fast with a clear message (never echoing the value) if the URL is not a full Postgres connection string. */
+export function assertPgUrl(url: string, name = 'DATABASE_URL') {
+  let ok = false;
+  try {
+    const u = new URL(url);
+    ok = /^postgres(ql)?:$/.test(u.protocol) && !!u.hostname && !!u.username && !!u.pathname.slice(1);
+  } catch {}
+  if (!ok) {
+    console.error(`${name} is not a full connection string. Expected postgresql://USER:PASSWORD@HOST:PORT/DBNAME - copy it from the Postgres service's Variables tab (on Railway use the reference \${{Postgres.DATABASE_URL}}).`);
+    process.exit(1);
+  }
+}
+
 export function connectPg(url: string) {
+  assertPgUrl(url);
   const pool = new pg.Pool(pgConfig(url));
   const ready = pool.query(`
     CREATE TABLE IF NOT EXISTS ticks (
@@ -16,6 +30,7 @@ export function connectPg(url: string) {
       quote  DOUBLE PRECISION NOT NULL,
       PRIMARY KEY (symbol, epoch)
     )`);
+  ready.catch(() => {}); // surfaced by the first insert/query; avoids an unhandled rejection crash
   return {
     pool,
     ready,
