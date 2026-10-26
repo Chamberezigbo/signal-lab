@@ -1,0 +1,29 @@
+{
+  "name": "signal-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal-use Boom/Crash signal lab for Deriv synthetic indices. Data collection only - no trading.",
+  "type": "module",
+  "scripts": {
+    "check-auth": "tsx src/check-auth.ts",
+    "backfill": "tsx src/backfill.ts",
+    "record": "tsx src/recorder.ts",
+    "stats": "tsx src/stats.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/recorder.ts",
+    "sync": "tsx src/sync.ts",
+    "seed-remote": "tsx src/seed-remote.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^18.0.9",
+    "pg": "^8.23.1",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "typescript": "^7.0.2"
+  }
+}
