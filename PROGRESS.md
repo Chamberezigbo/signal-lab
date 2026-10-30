@@ -104,3 +104,4 @@ Spike = one-tick move in spike direction (up BOOM, down CRASH) larger than K x m
 - 2026-10-30: Railway recorder ran 4.9 days unattended (one 7s hole at 2026-10-28 12:47:53Z, Railway restart). Synced 426k ticks/index. Built Stage 3 backtester + control; checkpoint results above. Not committed/pushed yet.
 - 2026-10-30: Stage 4 done (pre-registration, signal rules, gates). 0 candidates alive. Not committed/pushed.
 - 2026-10-30: Added BOOM1000/CRASH1000 recording; forward-test script + prereg addendum A; committed Stage 3/4 as c968831. Forward script + candidates refactor not yet committed.
+- 2026-10-30: One-time cloud reminder routine created for 2026-11-16 07:00Z (08:00 Lagos): https://claude.ai/code/routines/trig_016bg3K6eHzjEU7CcbgP7DMU (reminder only; it cannot run the test). Forward test must be run by the user locally: npm run sync, then npm run forward once.
