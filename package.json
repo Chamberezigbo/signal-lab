@@ -12,7 +12,11 @@
     "typecheck": "tsc --noEmit",
     "start": "tsx src/recorder.ts",
     "sync": "tsx src/sync.ts",
-    "seed-remote": "tsx src/seed-remote.ts"
+    "seed-remote": "tsx src/seed-remote.ts",
+    "spread": "tsx src/measure-spread.ts",
+    "backtest": "tsx src/backtest.ts",
+    "backtest:test": "tsx src/backtest/selftest.ts",
+    "signals": "tsx src/stage4.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

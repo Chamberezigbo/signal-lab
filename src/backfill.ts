@@ -2,16 +2,17 @@ import { SYMBOLS, PAGE_SIZE } from './config.js';
 import { openDb } from './db.js';
 import { DerivSocket } from './deriv.js';
 
-// Usage: npm run backfill -- [days=7]
+// Usage: npm run backfill -- [days=7] [SYMBOL]  (default: all configured symbols)
 // Pages backwards from the newest tick until `days` of history are stored or the server runs out.
 const days = Number(process.argv[2] ?? 7);
+const only = process.argv[3];
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const store = openDb();
 const sock = new DerivSocket();
 await sock.connect();
 
-for (const symbol of SYMBOLS) {
+for (const symbol of SYMBOLS.filter((s) => !only || s === only)) {
   const latest = await sock.ticksHistory(symbol, 'latest', PAGE_SIZE);
   if (!latest.length) throw new Error(`no ticks returned for ${symbol}`);
   const target = latest[latest.length - 1].epoch - days * 86400;

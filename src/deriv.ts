@@ -8,7 +8,7 @@ export class DerivSocket {
   private nextId = 1;
   private pending = new Map<number, Pending>();
   private pingTimer?: NodeJS.Timeout;
-  onTick?: (t: { symbol: string; epoch: number; quote: number }) => void;
+  onTick?: (t: { symbol: string; epoch: number; quote: number; bid?: number; ask?: number }) => void;
   onClose?: () => void;
 
   constructor(private url = PUBLIC_WS_URL) {}
@@ -36,7 +36,7 @@ export class DerivSocket {
 
   private handle(m: any) {
     if (m.msg_type === 'tick' && m.tick) {
-      this.onTick?.({ symbol: m.tick.symbol, epoch: m.tick.epoch, quote: m.tick.quote });
+      this.onTick?.({ symbol: m.tick.symbol, epoch: m.tick.epoch, quote: m.tick.quote, bid: m.tick.bid, ask: m.tick.ask });
     }
     const p = m.req_id != null ? this.pending.get(m.req_id) : undefined;
     if (!p) return;

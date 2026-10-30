@@ -15,7 +15,8 @@ Update it at the end of every work session.
 |---|---|
 | 1 Setup (project, connection) | Done. `check-auth` (demo balance) deliberately SKIPPED by user; needs a Deriv-App-ID the user chose not to register |
 | 2 Tick recorder (history + live + stats) | Built and verified. Railway recorder live; collecting the 1-week dataset. Checkpoint (>=1 week, 2 indices) reached ~2026-11-02 if recording is unbroken. AWAITING USER CONFIRMATION |
-| 3 Backtester | NOT STARTED - blocked on user confirmation |
+| 4 Signal engine + gates | DONE 2026-10-30: 60 pre-registered candidates per index, NONE alive. AWAITING USER DECISION (see Stage 4 result) |
+| 3 Backtester | Built and verified (engine + coin-flip control + self-test). AWAITING USER CONFIRMATION - do not start Stage 4 (signal engine) until the user says so |
 
 ## Deriv API facts (verified 2026-10-26)
 - Docs moved to https://developers.deriv.com. Legacy `ws.binaryws.com/websockets/v3` appears in some examples; we use the new API.
@@ -33,6 +34,36 @@ Update it at the end of every work session.
 - Verified locally: typecheck, health endpoint, SQLite path, Postgres SQL (in-memory pglite). NOT verified against real Railway Postgres or Railway's health check on a worker.
 - Local recorder currently running with PORT=8099; stop it after the first successful `sync`.
 
+## Stage 3 backtester (built 2026-10-30)
+- Commands: `npm run backtest -- [--symbol S] [--seeds N] [--sl pts] [--tp pts] [--spread pts] [--max-hold 1000] [--cooldown 0] [--range 0:0.7] [--risk 1]`, `npm run backtest:test` (self-test), `npm run spread` (samples live bid/ask).
+- Files: `src/backtest.ts` (CLI), `src/backtest/{engine,metrics,strategies,data,types,selftest}.ts`.
+- Model: one position at a time; signal on tick i fills on tick i+1 (no lookahead); long enters at ask/exits at bid (full spread per round trip); SL/TP checked on every tick and filled at that tick's price (spike gaps slip past stops/targets); position closed on the first tick after a data hole; max-hold timeout.
+- Measured spread (live bid/ask, 2026-10-30, fixed and stable): BOOM500 0.085, CRASH500 0.042 points. History stores only mid, so spread is a parameter.
+- Metrics: trades, win rate, profit factor, expectancy in R, t-stat, max drawdown in R (and % at --risk), best/worst R, exits, stops with >10% slippage.
+- Defaults: SL = TP = half the median spike (BOOM 2.74, CRASH 1.39 pts).
+- NOT modelled: commissions/swaps, spread widening, order latency, the exact Deriv product (multiplier/CFD/MT5) cost structure. `--range` supports the 70/30 split for gate 2.
+
+## Stage 3 checkpoint result (4.93 days, 426k ticks per index, 100 random seeds, SL=TP)
+| | zero-spread expectancy | net expectancy | spread cost per trade (theory) |
+|---|---|---|---|
+| BOOM500 | -0.002R (sd 0.041) | -0.031R | 0.085/2.74 = 0.031R |
+| CRASH500 | -0.001R (sd 0.042) | -0.031R | 0.042/1.39 = 0.030R |
+- ~2000 trades per run; zero-spread win rate 50%, PF 1.00; net PF 0.96; 0/100 seeds reach PF>1.3. The control shows ~zero edge before costs and loses exactly the spread, so the tester is behaving honestly.
+- Caveat: the 100 seeds share one price path, so their spread understates path-to-path variation. Single-run |t| up to ~2 occurs by luck (seed 1 BOOM zero-spread t=-2.11).
+- Observation: ~25% of stop-outs fill >10% past the stop because of spike gaps; avg loss is ~1.45R, not 1R.
+
+## Stage 4 (2026-10-30): signal engine + four-gate check
+- Rules fixed BEFORE testing in `PREREGISTRATION.md` (local, untracked). Do not edit it after the fact; new ideas = new candidates tested on data recorded after 2026-10-30T00:00Z.
+- Code: `npm run signals` (`src/stage4.ts`), `src/backtest/features.ts`, strategies `dueSpike`, `maCross`, `driftScalp` in `src/backtest/strategies.ts`.
+- Data used: ticks with epoch < 1793318400, 70/30 split (BOOM train 3.45d/test 1.48d; CRASH same).
+- Result: 0 of 60 candidates pass gate 1 on either index (train PF>1.3, >=300 trades). Nothing reached the test set, so gates 2/4b were never evaluated. Best train expectancy: BOOM ma-cross 20/100 sl=tp=0.25S +0.082R (PF 1.10, t=0.87); CRASH ma-cross 50/300 +0.108R (PF 1.08, t=0.71). Neither is distinguishable from zero.
+- Family means (train, net): due-spike -0.035R (BOOM) / -0.064R (CRASH); ma-cross -0.035R / -0.032R; drift-scalp -0.028R / -0.016R.
+- drift-scalp shows the PLAN.md warning: win rate 88-96% yet PF 0.81-0.97 (CRASH tp=30m: t=-2.98, significantly negative).
+- "Spike is due" (ticks since last spike): no edge at K = 100/300/500/800.
+- Time of day: spike rate not different across UTC hours (train chi2 p=0.37/0.33, test p=0.55/0.53); top-3 train hours do not hold up on test (p=0.19/0.28).
+- Power caveat: per-candidate expectancy standard error is ~0.09R with 300-700 trades, so 3.5 days of data cannot detect a real edge smaller than roughly 0.15-0.2R per trade. "No edge found" means no LARGE edge.
+- Decision rule from the prereg applies: no alive candidate => do not go to paper trading with these rules.
+
 ## Layout
 - `src/config.ts` endpoints, symbols, DB path
 - `src/store.ts`/`store-pg.ts`/`health.ts`/`sync.ts`/`seed-remote.ts` see Railway section
@@ -41,7 +72,8 @@ Update it at the end of every work session.
 - `src/backfill.ts` `npm run backfill -- [days]` page historical ticks into SQLite
 - `src/recorder.ts` `npm run record` live append, auto-reconnect, gap-fills after reconnects
 - `src/stats.ts` `npm run stats -- [K]` counts, missing seconds, spike stats
-- `src/check-auth.ts` `npm run check-auth` demo balance
+- `src/check-auth.ts` `npm run check-auth` demo balance (skipped by user)
+- `src/measure-spread.ts` `npm run spread`; `src/backtest*` see Stage 3 section
 
 ## Spike definition (used by stats; reuse in backtester)
 Spike = one-tick move in spike direction (up BOOM, down CRASH) larger than K x median |tick move|, K=20 default. Normal moves are tiny (BOOM median 0.011, spikes ~0.5-18), count is stable for K from 5 to 40.
@@ -61,3 +93,5 @@ Spike = one-tick move in spike direction (up BOOM, down CRASH) larger than K x m
 - 2026-10-26: Added Railway/Postgres support, health check, watchdog, sync, seed-remote, railway.json.
 - 2026-10-26 ~03:50 WAT: Railway recorder live (-> postgres). seed-remote pushed local history; sync verified (+0 new, counts match within live lag). Both indices ~90.8k ticks, no gaps. Local recorder still running as backup (Railway billing showed "past due"). Server must NOT hold DERIV_TOKEN.
 - 2026-10-26 ~03:55 WAT: local recorder STOPPED at user's request; Railway is the only recorder. Use npm run sync to pull ticks locally.
+- 2026-10-30: Railway recorder ran 4.9 days unattended (one 7s hole at 2026-10-28 12:47:53Z, Railway restart). Synced 426k ticks/index. Built Stage 3 backtester + control; checkpoint results above. Not committed/pushed yet.
+- 2026-10-30: Stage 4 done (pre-registration, signal rules, gates). 0 candidates alive. Not committed/pushed.
