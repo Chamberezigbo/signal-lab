@@ -15,7 +15,8 @@ Update it at the end of every work session.
 |---|---|
 | 1 Setup (project, connection) | Done. `check-auth` (demo balance) deliberately SKIPPED by user; needs a Deriv-App-ID the user chose not to register |
 | 2 Tick recorder (history + live + stats) | Built and verified. Railway recorder live; collecting the 1-week dataset. Checkpoint (>=1 week, 2 indices) reached ~2026-11-02 if recording is unbroken. AWAITING USER CONFIRMATION |
-| 4 Signal engine + gates | DONE 2026-10-30: 60 pre-registered candidates per index, NONE alive. AWAITING USER DECISION (see Stage 4 result) |
+| 4 Signal engine + gates | DONE 2026-10-30: 60 pre-registered candidates per index, NONE alive. User chose: stop + forward-test on 2026-11-16 or later |
+| 5 Paper trading | NOT STARTED (no surviving rules) |
 | 3 Backtester | Built and verified (engine + coin-flip control + self-test). AWAITING USER CONFIRMATION - do not start Stage 4 (signal engine) until the user says so |
 
 ## Deriv API facts (verified 2026-10-26)
@@ -64,6 +65,13 @@ Update it at the end of every work session.
 - Power caveat: per-candidate expectancy standard error is ~0.09R with 300-700 trades, so 3.5 days of data cannot detect a real edge smaller than roughly 0.15-0.2R per trade. "No edge found" means no LARGE edge.
 - Decision rule from the prereg applies: no alive candidate => do not go to paper trading with these rules.
 
+## Decision 2026-10-30 (user): options 1 + 2
+- Accept "no edge found" for the Stage 4 rule families: NO paper trading with them (Stage 5 not started).
+- Keep recording; run the frozen 60 candidates per index ONCE on post-cutoff data: `npm run forward` (`src/forward.ts`), rules in PREREGISTRATION.md ADDENDUM A (earliest 2026-11-16; alive needs >=300 trades, PF>1.3, exp>0 and above the 99.9th percentile of 1000 coin-flip seeds). The script refuses to run earlier unless --force (do not use --force to peek).
+- Candidates/control code is shared in `src/backtest/candidates.ts` (refactor verified: stage4 numbers identical).
+- Recording now also covers BOOM1000 and CRASH1000 (config `SYMBOLS`; `RESEARCH_SYMBOLS` = the two 500s used by stage4/backtest/forward). The 1000 indices are NOT part of the pre-registered tests; any rules for them need their own pre-registration + forward data. First 24h backfilled locally (hole from the redeploy filled via backfill); first stats: BOOM1000 avg 1058 ticks between spikes, CRASH1000 1105 (theory 1000), ~87k ticks each.
+- Railway Postgres hole for the 1000 indices (~11 min around the 2026-10-30 redeploy) is filled by a second `seed-remote` run (background job started 2026-10-30; verify with `npm run sync` that remote == local).
+
 ## Layout
 - `src/config.ts` endpoints, symbols, DB path
 - `src/store.ts`/`store-pg.ts`/`health.ts`/`sync.ts`/`seed-remote.ts` see Railway section
@@ -95,3 +103,4 @@ Spike = one-tick move in spike direction (up BOOM, down CRASH) larger than K x m
 - 2026-10-26 ~03:55 WAT: local recorder STOPPED at user's request; Railway is the only recorder. Use npm run sync to pull ticks locally.
 - 2026-10-30: Railway recorder ran 4.9 days unattended (one 7s hole at 2026-10-28 12:47:53Z, Railway restart). Synced 426k ticks/index. Built Stage 3 backtester + control; checkpoint results above. Not committed/pushed yet.
 - 2026-10-30: Stage 4 done (pre-registration, signal rules, gates). 0 candidates alive. Not committed/pushed.
+- 2026-10-30: Added BOOM1000/CRASH1000 recording; forward-test script + prereg addendum A; committed Stage 3/4 as c968831. Forward script + candidates refactor not yet committed.

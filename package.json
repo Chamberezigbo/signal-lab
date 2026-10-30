@@ -16,7 +16,8 @@
     "spread": "tsx src/measure-spread.ts",
     "backtest": "tsx src/backtest.ts",
     "backtest:test": "tsx src/backtest/selftest.ts",
-    "signals": "tsx src/stage4.ts"
+    "signals": "tsx src/stage4.ts",
+    "forward": "tsx src/forward.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

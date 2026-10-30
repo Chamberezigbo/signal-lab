@@ -39,3 +39,17 @@ passes expected from luck alone is reported (from the control: share of random s
 ## Decision rule
 If no candidate is alive on either index, the conclusion is "no edge found" and we do not proceed to paper trading with
 these rules. If a candidate is alive, it still needs Stage 5 paper trading and more data before any real-money talk.
+
+---
+## ADDENDUM A - forward test (written 2026-10-30, before any forward data was examined)
+Decision by the user on 2026-10-30: accept "no edge found" for the Stage 4 rules (no paper trading with them), keep recording,
+and re-test the SAME frozen 60 candidates per index on data recorded after the cutoff.
+- Forward data: BOOM500 and CRASH500 ticks with epoch >= 1793318400 only. Data before the cutoff is never used.
+- Earliest run date: 2026-11-16 (about 2.5 weeks of forward data). Run it ONCE; do not peek at partial forward results earlier,
+  and do not re-run after tweaking anything. The candidate list, spreads, max hold, cooldown and spike constants are unchanged.
+- Alive on the forward segment requires ALL of: >= 300 trades, profit factor > 1.3, net expectancy > 0, and expectancy above the
+  99.9th percentile of 1000 coin-flip seeds with the same SL/TP on the same segment (about Bonferroni for 60 candidates).
+- If no candidate is alive: the Stage 4 conclusion stands (no edge in these rule families on BOOM/CRASH 500).
+- If one or more is alive: it is a lead only. It then needs the 4-week demo paper-trading gate (PLAN.md Stage 5) before any further step.
+- BOOM1000 / CRASH1000 are recorded but are not part of this test. Any rules for them are new candidates needing their own
+  pre-registration and forward data.

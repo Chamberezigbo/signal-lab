@@ -1,67 +1,12 @@
 import { RESEARCH_SYMBOLS } from './config.js';
 import { loadSeries, sliceSeries } from './backtest/data.js';
-import { runBacktest } from './backtest/engine.js';
-import { isSpike, MEDIAN_MOVE, MEDIAN_SPIKE } from './backtest/features.js';
-import { computeMetrics, type Metrics } from './backtest/metrics.js';
-import { coinFlip, driftScalp, dueSpike, maCross } from './backtest/strategies.js';
-import type { Series, Strategy } from './backtest/types.js';
+import { isSpike } from './backtest/features.js';
+import type { Metrics } from './backtest/metrics.js';
+import { candidates, control, CUTOFF, p99, pctile, run, SPREAD } from './backtest/candidates.js';
+import type { Series } from './backtest/types.js';
 
 // npm run signals: runs the candidates and gates exactly as fixed in PREREGISTRATION.md.
-const CUTOFF = 1793318400; // 2026-10-30T00:00:00Z
-const SPREAD: Record<string, number> = { BOOM500: 0.085, CRASH500: 0.042 };
-const SEEDS = 200;
-const MULTS = [0.25, 0.5, 1];
-
-interface Candidate {
-  family: string;
-  label: string;
-  sl: number;
-  tp: number;
-  make: () => Strategy;
-}
-
-function candidates(symbol: string): Candidate[] {
-  const S = MEDIAN_SPIKE[symbol];
-  const m = MEDIAN_MOVE[symbol];
-  const out: Candidate[] = [];
-  const r = (x: number) => +x.toFixed(4);
-  for (const K of [100, 300, 500, 800])
-    for (const a of MULTS)
-      for (const b of MULTS) {
-        const sl = r(a * S), tp = r(b * S);
-        out.push({ family: 'due-spike', label: `K=${K} sl=${a}S tp=${b}S`, sl, tp, make: () => dueSpike(K, sl, tp) });
-      }
-  for (const [fast, slow] of [[20, 100], [50, 300]])
-    for (const a of MULTS)
-      for (const b of MULTS) {
-        const sl = r(a * S), tp = r(b * S);
-        out.push({ family: 'ma-cross', label: `${fast}/${slow} sl=${a}S tp=${b}S`, sl, tp, make: () => maCross(fast, slow, sl, tp) });
-      }
-  for (const tpm of [30, 60, 120])
-    for (const a of [0.5, 1]) {
-      const sl = r(a * S), tp = r(tpm * m);
-      out.push({ family: 'drift-scalp', label: `tp=${tpm}m sl=${a}S`, sl, tp, make: () => driftScalp(20, sl, tp) });
-    }
-  return out;
-}
-
 const f = (x: number, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : 'inf');
-const run = (s: Series, st: Strategy, spread: number) => computeMetrics(runBacktest(s, st, { spread, maxHold: 1000, cooldown: 0 }));
-
-const controlCache = new Map<string, { exp: number[]; luckPF: number }>();
-function control(seg: Series, name: string, sl: number, tp: number) {
-  const key = `${seg.symbol}|${name}|${sl}|${tp}`;
-  let c = controlCache.get(key);
-  if (!c) {
-    const ms: Metrics[] = [];
-    for (let seed = 1; seed <= SEEDS; seed++) ms.push(run(seg, coinFlip(seed, sl, tp), SPREAD[seg.symbol]));
-    c = { exp: ms.map((x) => x.expectancyR).sort((a, b) => a - b), luckPF: ms.filter((x) => x.profitFactor > 1.3 && x.trades >= 300).length / SEEDS };
-    controlCache.set(key, c);
-  }
-  return c;
-}
-const p99 = (c: { exp: number[] }) => c.exp[Math.ceil(0.99 * c.exp.length) - 1];
-const pctile = (c: { exp: number[] }, x: number) => (c.exp.filter((e) => e < x).length / c.exp.length) * 100;
 
 // --- time-of-day analysis -------------------------------------------------------------------------------------
 const Phi = (z: number) => {
