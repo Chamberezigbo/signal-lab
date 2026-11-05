@@ -1,11 +1,11 @@
 import type { Series } from './types.js';
 
 /** Causal spike detector constants (20x the generator's median tick move; see PREREGISTRATION.md). */
-export const SPIKE_THRESHOLD: Record<string, number> = { BOOM500: 0.22, CRASH500: 0.1 };
-export const SPIKE_DIR: Record<string, 1 | -1> = { BOOM500: 1, CRASH500: -1 };
+export const SPIKE_THRESHOLD: Record<string, number> = { BOOM500: 0.22, CRASH500: 0.1, BOOM1000: 0.28, CRASH1000: 0.12 };
+export const SPIKE_DIR: Record<string, 1 | -1> = { BOOM500: 1, CRASH500: -1, BOOM1000: 1, CRASH1000: -1 };
 /** Scale constants for SL/TP: median spike size S and median tick move m. */
-export const MEDIAN_SPIKE: Record<string, number> = { BOOM500: 5.48, CRASH500: 2.78 };
-export const MEDIAN_MOVE: Record<string, number> = { BOOM500: 0.011, CRASH500: 0.005 };
+export const MEDIAN_SPIKE: Record<string, number> = { BOOM500: 5.48, CRASH500: 2.78, BOOM1000: 13.85, CRASH1000: 5.59 };
+export const MEDIAN_MOVE: Record<string, number> = { BOOM500: 0.011, CRASH500: 0.005, BOOM1000: 0.014, CRASH1000: 0.006 };
 
 export function isSpike(s: Series, i: number): boolean {
   return i > 0 && (s.quote[i] - s.quote[i - 1]) * SPIKE_DIR[s.symbol] > SPIKE_THRESHOLD[s.symbol];

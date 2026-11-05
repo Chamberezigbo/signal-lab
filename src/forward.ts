@@ -1,20 +1,24 @@
 import { RESEARCH_SYMBOLS } from './config.js';
 import { loadSeries } from './backtest/data.js';
-import { candidates, control, CUTOFF, quantile, run, SPREAD } from './backtest/candidates.js';
+import { candidates, control, CUTOFF, CUTOFF_1000, quantile, run, SPREAD } from './backtest/candidates.js';
 
-// npm run forward: ADDENDUM A of PREREGISTRATION.md. Runs the frozen candidates ONCE on ticks recorded after the cutoff.
-// Do not run before 2026-11-16 and do not re-run after changing anything (use --force to override the date guard).
-const EARLIEST = Date.UTC(2026, 10, 16) / 1000;
-if (Date.now() / 1000 < EARLIEST && !process.argv.includes('--force')) {
-  console.error('Too early: ADDENDUM A says run no earlier than 2026-11-16. Peeking at partial forward results is not allowed.');
+// npm run forward: ADDENDUM A of PREREGISTRATION.md (500 indices). Runs the frozen candidates ONCE on ticks recorded after the cutoff.
+// npm run forward -- 1000: ADDENDUM C (BOOM1000/CRASH1000, cutoff 2026-11-05).
+// Do not run before the earliest date and do not re-run after changing anything (use --force to override the date guard).
+const is1000 = process.argv[2] === '1000';
+const SET = is1000
+  ? { symbols: ['BOOM1000', 'CRASH1000'], cutoff: CUTOFF_1000, earliest: Date.UTC(2026, 10, 26) / 1000, label: 'ADDENDUM C: no earlier than 2026-11-26' }
+  : { symbols: [...RESEARCH_SYMBOLS], cutoff: CUTOFF, earliest: Date.UTC(2026, 10, 16) / 1000, label: 'ADDENDUM A: no earlier than 2026-11-16' };
+if (Date.now() / 1000 < SET.earliest && !process.argv.includes('--force')) {
+  console.error(`Too early: ${SET.label}. Peeking at partial forward results is not allowed.`);
   process.exit(1);
 }
 const SEEDS = 1000;
 const f = (x: number, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : 'inf');
 
-for (const symbol of RESEARCH_SYMBOLS) {
+for (const symbol of SET.symbols) {
   const seg = loadSeries(symbol, [0, 1]);
-  const first = seg.epoch.findIndex((e) => e >= CUTOFF);
+  const first = seg.epoch.findIndex((e) => e >= SET.cutoff);
   if (first < 0) continue;
   const fwd = { ...seg, epoch: seg.epoch.slice(first), quote: seg.quote.slice(first) };
   console.log(`\n=== ${symbol} forward segment: ${fwd.quote.length} ticks (${((fwd.epoch[fwd.epoch.length - 1] - fwd.epoch[0]) / 86400).toFixed(2)} days) ===`);

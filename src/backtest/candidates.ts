@@ -5,8 +5,9 @@ import { coinFlip, driftScalp, dueSpike, maCross } from './strategies.js';
 import type { Series, Strategy } from './types.js';
 
 // The frozen Stage 4 candidate list and control machinery (see PREREGISTRATION.md). Do not edit the candidates.
-export const CUTOFF = 1793318400; // 2026-10-30T00:00:00Z
-export const SPREAD: Record<string, number> = { BOOM500: 0.085, CRASH500: 0.042 };
+export const CUTOFF = 1793318400; // 2026-10-30T00:00:00Z (500 indices)
+export const CUTOFF_1000 = 1793836800; // 2026-11-05T00:00:00Z (1000 indices, ADDENDUM B)
+export const SPREAD: Record<string, number> = { BOOM500: 0.085, CRASH500: 0.042, BOOM1000: 0.153, CRASH1000: 0.061 };
 const MULTS = [0.25, 0.5, 1];
 
 export interface Candidate {
@@ -22,7 +23,8 @@ export function candidates(symbol: string): Candidate[] {
   const m = MEDIAN_MOVE[symbol];
   const out: Candidate[] = [];
   const r = (x: number) => +x.toFixed(4);
-  for (const K of [100, 300, 500, 800])
+  const kScale = symbol.endsWith('1000') ? 2 : 1; // spike rate is half on the 1000 indices (ADDENDUM B)
+  for (const K of [100, 300, 500, 800].map((k) => k * kScale))
     for (const a of MULTS)
       for (const b of MULTS) {
         const sl = r(a * S), tp = r(b * S);

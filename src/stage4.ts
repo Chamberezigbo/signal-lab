@@ -2,10 +2,12 @@ import { RESEARCH_SYMBOLS } from './config.js';
 import { loadSeries, sliceSeries } from './backtest/data.js';
 import { isSpike } from './backtest/features.js';
 import type { Metrics } from './backtest/metrics.js';
-import { candidates, control, CUTOFF, p99, pctile, run, SPREAD } from './backtest/candidates.js';
+import { candidates, control, CUTOFF, CUTOFF_1000, p99, pctile, run, SPREAD } from './backtest/candidates.js';
 import type { Series } from './backtest/types.js';
 
 // npm run signals: runs the candidates and gates exactly as fixed in PREREGISTRATION.md.
+// `npm run signals` = the 500 indices (PREREGISTRATION.md); `npm run signals -- 1000` = BOOM1000/CRASH1000 (ADDENDUM B).
+const SET = process.argv[2] === '1000' ? { symbols: ['BOOM1000', 'CRASH1000'], cutoff: CUTOFF_1000 } : { symbols: [...RESEARCH_SYMBOLS], cutoff: CUTOFF };
 const f = (x: number, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : 'inf');
 
 // --- time-of-day analysis -------------------------------------------------------------------------------------
@@ -36,8 +38,8 @@ function hourStats(s: Series) {
 }
 
 // --- main ---------------------------------------------------------------------------------------------------
-for (const symbol of RESEARCH_SYMBOLS) {
-  const all = loadSeries(symbol, [0, 1], CUTOFF);
+for (const symbol of SET.symbols) {
+  const all = loadSeries(symbol, [0, 1], SET.cutoff);
   const cut = Math.floor(all.quote.length * 0.7);
   const train = sliceSeries(all, 0, cut);
   const test = sliceSeries(all, cut, all.quote.length);
