@@ -19,7 +19,8 @@
     "signals": "tsx src/stage4.ts",
     "forward": "tsx src/forward.ts",
     "guardian": "tsx src/guardian/cli.ts",
-    "test": "node --import tsx --test src/guardian/*.test.ts"
+    "test": "node --import tsx --test src/guardian/*.test.ts src/meter/*.test.ts",
+    "meter": "tsx src/meter/cli.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

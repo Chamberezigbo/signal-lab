@@ -47,7 +47,7 @@ export interface EntryRequest {
 }
 
 export type GuardianEvent =
-  | { type: 'entry_allowed'; at: number; request: EntryRequest }
+  | { type: 'entry_allowed'; at: number; request: EntryRequest; balance: number }
   | { type: 'entry_denied'; at: number; request: EntryRequest; decision: Decision }
   | { type: 'trade_closed'; at: number; pnl: number; balance: number; consecutiveLosses: number; cooldownUntil: number }
   | { type: 'day_rollover'; at: number; dayKey: number; dayStartBalance: number };
@@ -162,7 +162,7 @@ export class RiskGuardian {
     if (d.allowed) {
       this.state.tradesToday += 1;
       this.state.openPositions += 1;
-      this.onEvent({ type: 'entry_allowed', at: t, request: req });
+      this.onEvent({ type: 'entry_allowed', at: t, request: req, balance: this.state.balance });
     } else {
       this.onEvent({ type: 'entry_denied', at: t, request: req, decision: d });
     }
