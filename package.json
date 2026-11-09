@@ -17,7 +17,9 @@
     "backtest": "tsx src/backtest.ts",
     "backtest:test": "tsx src/backtest/selftest.ts",
     "signals": "tsx src/stage4.ts",
-    "forward": "tsx src/forward.ts"
+    "forward": "tsx src/forward.ts",
+    "guardian": "tsx src/guardian/cli.ts",
+    "test": "node --import tsx --test src/guardian/*.test.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
