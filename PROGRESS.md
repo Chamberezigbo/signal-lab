@@ -117,3 +117,4 @@ Spike = one-tick move in spike direction (up BOOM, down CRASH) larger than K x m
 - Verdict: no edge found, as pre-registered. Stage 4 rules stay closed for the 500s.
 - Ops: `npm run sync` hung twice on the 1000 indices (no DB writes, 0% CPU, after the 500s finished). Fix before the 2026-11-26 1000 forward test.
 - Fixed the sync hang: `src/sync.ts` now uses TCP keepalive, a 60s per-query timeout and up to 5 attempts per page. After the fix all four indices synced (BOOM1000 +134,745, CRASH1000 +584,845). Local data now ~1.59M ticks per 1000 index.
+- Created reminder routine `trig_01UxxFhUbDFbsV91Xs7fJKfs` ("signal-lab 1000 forward test reminder"), fires once at 2026-11-26 07:00Z (08:00 Lagos). It is reminder-only (Read/Glob/Grep). Manage at https://claude.ai/code/routines/trig_01UxxFhUbDFbsV91Xs7fJKfs
