@@ -118,3 +118,8 @@ Spike = one-tick move in spike direction (up BOOM, down CRASH) larger than K x m
 - Ops: `npm run sync` hung twice on the 1000 indices (no DB writes, 0% CPU, after the 500s finished). Fix before the 2026-11-26 1000 forward test.
 - Fixed the sync hang: `src/sync.ts` now uses TCP keepalive, a 60s per-query timeout and up to 5 attempts per page. After the fix all four indices synced (BOOM1000 +134,745, CRASH1000 +584,845). Local data now ~1.59M ticks per 1000 index.
 - Created reminder routine `trig_01UxxFhUbDFbsV91Xs7fJKfs` ("signal-lab 1000 forward test reminder"), fires once at 2026-11-26 07:00Z (08:00 Lagos). It is reminder-only (Read/Glob/Grep). Manage at https://claude.ai/code/routines/trig_01UxxFhUbDFbsV91Xs7fJKfs
+
+## 2026-11-18 — Crypto research started (ADDENDUM D)
+- Owner asked to look at crypto/forex since the synthetic indices showed no edge. Compared open-source options (Binance public data repo, community downloaders, Dukascopy downloaders, NautilusTrader/backtesting.py/vectorbt); decision: reuse our own engine and gates, add a Binance 1m-kline loader, crypto only (BTCUSDT, ETHUSDT), forex skipped for now.
+- `PREREGISTRATION-CRYPTO.md` frozen at commit 59d7c2d BEFORE any data download: 144 candidates, 0.10%/side cost, TRAIN 2022-23 / TEST 2024 / sealed HOLD-OUT 2025+, 4 gates, written prediction = nothing survives. (Status label changed from DRAFT to FROZEN in the next commit; rules unchanged.)
+- Next: loader + percentage-cost engine mode (must keep Deriv results unchanged), then run gates 1-2 only.

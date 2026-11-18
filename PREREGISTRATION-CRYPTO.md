@@ -1,6 +1,6 @@
 # Pre-registration: crypto (BTCUSDT, ETHUSDT) — ADDENDUM D
 
-Status: **DRAFT, written 2026-11-18 before any crypto data was downloaded or looked at.** It becomes binding when committed. After that, no candidate, threshold, cost, split date or gate below may change. Any new idea is a new addendum with its own sealed hold-out; hold-out data used once cannot be reused.
+Status: **FROZEN. Written 2026-11-18 before any crypto data was downloaded or looked at; approved by the owner and binding from commit 59d7c2d (the rules in that commit are unchanged; only this status label was updated afterwards).** After that, no candidate, threshold, cost, split date or gate below may change. Any new idea is a new addendum with its own sealed hold-out; hold-out data used once cannot be reused.
 
 Purpose: find out whether any simple rule has a net edge on a real, liquid market, after realistic fees. This is research only. No order placement code, no keys, no auto-execution.
 
